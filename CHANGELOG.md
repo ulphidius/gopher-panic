@@ -17,5 +17,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation
 - CI
 
-[unreleased]: https://github.com/ulphidius/gopher-panic/compare/v0.1.0...master
-[0.1.0]: https://github.com/ulphidius/gopher-panic/compare/v0.1.0
+[unreleased]: https://github.com/ulphidius/gopherpanic/compare/v0.1.0...master
+[0.1.0]: https://github.com/ulphidius/gopherpanic/compare/v0.1.0
