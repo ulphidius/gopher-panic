@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Code struct to identify more easily the error kind
+- FormatJSON can now be indented
+
+### Changed
+
+- Enhance Error and Trace message
 
 ## [0.1.1]
 
