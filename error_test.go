@@ -17,7 +17,7 @@ func TestNew(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want Error
+		want *Error
 	}{
 		{
 			name: "OK",
@@ -48,7 +48,7 @@ func TestNew(t *testing.T) {
 					},
 				},
 			},
-			want: Error{
+			want: &Error{
 				Code:    UnknownError,
 				Message: "sample error",
 				Position: Position{
@@ -86,7 +86,7 @@ func TestNew(t *testing.T) {
 				code:    UnknownError,
 				message: "sample error",
 			},
-			want: Error{
+			want: &Error{
 				Code:    UnknownError,
 				Message: "sample error",
 				Position: Position{
@@ -111,20 +111,20 @@ func TestWrap(t *testing.T) {
 	type args struct {
 		code    Code
 		message string
-		err     Error
+		err     *Error
 	}
 
 	tests := []struct {
 		name string
 		args args
-		want Error
+		want *Error
 	}{
 		{
 			name: "OK",
 			args: args{
 				code:    UnknownError,
 				message: "sample error",
-				err: Error{
+				err: &Error{
 					Message: "error message",
 					Position: Position{
 						File: "error.go",
@@ -155,7 +155,7 @@ func TestWrap(t *testing.T) {
 					},
 				},
 			},
-			want: Error{
+			want: &Error{
 				Code:    UnknownError,
 				Message: "sample error",
 				Position: Position{
