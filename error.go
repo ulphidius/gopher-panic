@@ -14,7 +14,7 @@ type Error struct {
 	Traces   []Trace  `json:"traces,omitempty"`
 }
 
-func New(code Code, message string, traces ...Trace) Error {
+func New(code Code, message string, traces ...Trace) *Error {
 	return &Error{
 		Code:     code,
 		Message:  message,
