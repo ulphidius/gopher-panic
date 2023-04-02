@@ -45,7 +45,7 @@ func (err Error) Error() string {
 
 func (err Error) Format() string {
 	return fmt.Sprintf(
-		"error code: %d; error description: %s\n\terror: %s; in file: %s; at line: %d",
+		"code id: %d; description: %s\n\terror message: %s; in file: %s; at line: %d",
 		err.Code.ID,
 		err.Code.Description,
 		err.Message,
@@ -60,8 +60,15 @@ func (err Error) FormatWithTraces() string {
 	})
 }
 
-func (err Error) FormatJSON() string {
-	data, _ := json.Marshal(err)
+func (err Error) FormatJSON(indent bool) string {
+	var data []byte
+
+	if indent {
+		data, _ = json.MarshalIndent(err, "", "\t")
+		return string(data)
+	}
+
+	data, _ = json.Marshal(err)
 	return string(data)
 }
 
@@ -78,5 +85,5 @@ func (trace Trace) IntoError() Error {
 }
 
 func (trace Trace) Format() string {
-	return fmt.Sprintf("error: %s; in file: %s; at line: %d", trace.Message, trace.Position.File, trace.Position.Line)
+	return fmt.Sprintf("trace message: %s; in file: %s; at line: %d", trace.Message, trace.Position.File, trace.Position.Line)
 }
