@@ -10,6 +10,7 @@ type Builder interface {
 }
 
 type ErrorBuilder struct {
+	code     Code
 	message  string
 	position Position
 	traces   []Trace
@@ -20,7 +21,12 @@ func (builder ErrorBuilder) New() ErrorBuilder {
 }
 
 func (builder ErrorBuilder) Default() ErrorBuilder {
-	return ErrorBuilder{message: "an unexpected error occured", position: Position{}.spawn(2), traces: nil}
+	return ErrorBuilder{code: UnknownError, message: "an unexpected error occured", position: Position{}.spawn(2), traces: nil}
+}
+
+func (builder ErrorBuilder) WithCode(code Code) ErrorBuilder {
+	builder.code = code
+	return builder
 }
 
 func (builder ErrorBuilder) WithMessage(message string) ErrorBuilder {
@@ -40,6 +46,7 @@ func (builder ErrorBuilder) WithTraces(traces ...Trace) ErrorBuilder {
 
 func (builder ErrorBuilder) Build() Error {
 	return Error{
+		Code:     builder.code,
 		Message:  builder.message,
 		Position: builder.position,
 		Traces:   builder.traces,

@@ -8,21 +8,24 @@ import (
 )
 
 type Error struct {
+	Code     Code     `json:"code"`
 	Message  string   `json:"message"`
 	Position Position `json:"position"`
 	Traces   []Trace  `json:"traces,omitempty"`
 }
 
-func New(message string, traces []Trace) Error {
+func New(code Code, message string, traces []Trace) Error {
 	return Error{
+		Code:     code,
 		Message:  message,
 		Position: Position{}.spawn(2),
 		Traces:   traces,
 	}
 }
 
-func Wrap(message string, err Error) Error {
+func Wrap(code Code, message string, err Error) Error {
 	return ErrorBuilder{}.New().
+		WithCode(code).
 		WithMessage(message).
 		WithPosition(Position{}.spawn(2)).
 		WithTraces(append([]Trace{err.IntoTrace()}, err.Traces...)...).
@@ -41,12 +44,19 @@ func (err Error) Error() string {
 }
 
 func (err Error) Format() string {
-	return fmt.Sprintf("error: %s; in file: %s; at line: %d", err.Message, err.Position.File, err.Position.Line)
+	return fmt.Sprintf(
+		"error code: %d; error description: %s\n\terror: %s; in file: %s; at line: %d",
+		err.Code.ID,
+		err.Code.Description,
+		err.Message,
+		err.Position.File,
+		err.Position.Line,
+	)
 }
 
 func (err Error) FormatWithTraces() string {
 	return iterago.Fold(err.Traces, err.Format(), func(acc string, trace Trace) string {
-		return acc + fmt.Sprintf("\n\t%s", trace.Format())
+		return acc + fmt.Sprintf("\n\t\t%s", trace.Format())
 	})
 }
 

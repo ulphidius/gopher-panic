@@ -38,8 +38,9 @@ func TestErrorBuilderDefault(t *testing.T) {
 			name:   "OK",
 			fields: ErrorBuilder{},
 			want: ErrorBuilder{
+				code:     UnknownError,
 				message:  "an unexpected error occured",
-				position: Position{File: "builder_test.go", Line: 49},
+				position: Position{File: "builder_test.go", Line: 50},
 			},
 		},
 	}
@@ -162,6 +163,37 @@ func TestErrorBuilderWithTraces(t *testing.T) {
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
 			result := ErrorBuilder{}.WithTraces(testCase.args...)
+			assert.Equal(t, testCase.want, result)
+		})
+	}
+}
+
+func TestWithCode(t *testing.T) {
+	tests := []struct {
+		name   string
+		fields ErrorBuilder
+		args   Code
+		want   ErrorBuilder
+	}{
+		{
+			name:   "OK",
+			fields: ErrorBuilder{},
+			args: Code{
+				ID:          1,
+				Description: "sample",
+			},
+			want: ErrorBuilder{
+				code: Code{
+					ID:          1,
+					Description: "sample",
+				},
+			},
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			result := ErrorBuilder{}.WithCode(testCase.args)
 			assert.Equal(t, testCase.want, result)
 		})
 	}
