@@ -99,7 +99,7 @@ func TestNew(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := New(testCase.args.code, testCase.args.message, testCase.args.traces) // Error check based on the current line
+			result := New(testCase.args.code, testCase.args.message, testCase.args.traces...) // Error check based on the current line
 			files := strings.Split(result.Position.File, "/")
 			result.Position.File = files[len(files)-1]
 			assert.Equal(t, testCase.want, result)
@@ -255,7 +255,7 @@ func TestErrorError(t *testing.T) {
 					Line: 50,
 				},
 			},
-			want: "error code: 0; error description: failed to perform task\n\terror: sample error; in file: sample.go; at line: 50",
+			want: "code id: 0; description: failed to perform task\n\terror message: sample error; in file: sample.go; at line: 50",
 		},
 	}
 
@@ -283,7 +283,7 @@ func TestErrorFormat(t *testing.T) {
 					Line: 50,
 				},
 			},
-			want: "error code: 0; error description: failed to perform task\n\terror: sample error; in file: sample.go; at line: 50",
+			want: "code id: 0; description: failed to perform task\n\terror message: sample error; in file: sample.go; at line: 50",
 		},
 	}
 
@@ -334,7 +334,7 @@ func TestErrorFormatWithTraces(t *testing.T) {
 					},
 				},
 			},
-			want: "error code: 0; error description: failed to perform task\n\terror: sample error; in file: sample.go; at line: 50\n\t\terror: inner 1; in file: inner_1.go; at line: 10\n\t\terror: inner 2; in file: inner_2.go; at line: 20\n\t\terror: inner 3; in file: inner_3.go; at line: 30",
+			want: "code id: 0; description: failed to perform task\n\terror message: sample error; in file: sample.go; at line: 50\n\t\ttrace message: inner 1; in file: inner_1.go; at line: 10\n\t\ttrace message: inner 2; in file: inner_2.go; at line: 20\n\t\ttrace message: inner 3; in file: inner_3.go; at line: 30",
 		},
 	}
 
@@ -350,6 +350,7 @@ func TestErrorFormatJSON(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields Error
+		args   bool
 		want   string
 	}{
 		{
@@ -387,11 +388,47 @@ func TestErrorFormatJSON(t *testing.T) {
 			},
 			want: "{\"code\":{\"id\":0,\"description\":\"failed to perform task\"},\"message\":\"sample error\",\"position\":{\"file\":\"sample.go\",\"line\":50},\"traces\":[{\"message\":\"inner 1\",\"position\":{\"file\":\"inner_1.go\",\"line\":10}},{\"message\":\"inner 2\",\"position\":{\"file\":\"inner_2.go\",\"line\":20}},{\"message\":\"inner 3\",\"position\":{\"file\":\"inner_3.go\",\"line\":30}}]}",
 		},
+		{
+			name: "OK - With Indent",
+			args: true,
+			fields: Error{
+				Code:    UnknownError,
+				Message: "sample error",
+				Position: Position{
+					File: "sample.go",
+					Line: 50,
+				},
+				Traces: []Trace{
+					{
+						Message: "inner 1",
+						Position: Position{
+							File: "inner_1.go",
+							Line: 10,
+						},
+					},
+					{
+						Message: "inner 2",
+						Position: Position{
+							File: "inner_2.go",
+							Line: 20,
+						},
+					},
+					{
+						Message: "inner 3",
+						Position: Position{
+							File: "inner_3.go",
+							Line: 30,
+						},
+					},
+				},
+			},
+			want: "{\n\t\"code\": {\n\t\t\"id\": 0,\n\t\t\"description\": \"failed to perform task\"\n\t},\n\t\"message\": \"sample error\",\n\t\"position\": {\n\t\t\"file\": \"sample.go\",\n\t\t\"line\": 50\n\t},\n\t\"traces\": [\n\t\t{\n\t\t\t\"message\": \"inner 1\",\n\t\t\t\"position\": {\n\t\t\t\t\"file\": \"inner_1.go\",\n\t\t\t\t\"line\": 10\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"message\": \"inner 2\",\n\t\t\t\"position\": {\n\t\t\t\t\"file\": \"inner_2.go\",\n\t\t\t\t\"line\": 20\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"message\": \"inner 3\",\n\t\t\t\"position\": {\n\t\t\t\t\"file\": \"inner_3.go\",\n\t\t\t\t\"line\": 30\n\t\t\t}\n\t\t}\n\t]\n}",
+		},
 	}
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := testCase.fields.FormatJSON()
+			result := testCase.fields.FormatJSON(testCase.args)
 			assert.Equal(t, testCase.want, result)
 		})
 	}
@@ -445,7 +482,7 @@ func TestTraceFormat(t *testing.T) {
 					Line: 50,
 				},
 			},
-			want: "error: sample error; in file: sample.go; at line: 50",
+			want: "trace message: sample error; in file: sample.go; at line: 50",
 		},
 	}
 
