@@ -14,8 +14,8 @@ type Error struct {
 	Traces   []Trace  `json:"traces,omitempty"`
 }
 
-func New(code Code, message string, traces []Trace) Error {
-	return Error{
+func New(code Code, message string, traces []Trace) *Error {
+	return &Error{
 		Code:     code,
 		Message:  message,
 		Position: Position{}.spawn(2),
@@ -23,13 +23,14 @@ func New(code Code, message string, traces []Trace) Error {
 	}
 }
 
-func Wrap(code Code, message string, err Error) Error {
-	return ErrorBuilder{}.New().
+func Wrap(code Code, message string, err *Error) *Error {
+	newErr := ErrorBuilder{}.New().
 		WithCode(code).
 		WithMessage(message).
 		WithPosition(Position{}.spawn(2)).
 		WithTraces(append([]Trace{err.IntoTrace()}, err.Traces...)...).
 		Build()
+	return &newErr
 }
 
 func (err Error) IntoTrace() Trace {
