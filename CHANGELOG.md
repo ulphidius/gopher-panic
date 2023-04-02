@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Code struct to identify more easily the error kind
 
+### Changed
+
+- Convert Error into Error pointer for a better usability
+
 ## [0.1.1]
 
 ### Fixed
