@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Enhance Error and Trace message
 
+### Changed
+
+- New Error function use now a params for Traces
+
 ## [0.1.1]
 
 ### Fixed

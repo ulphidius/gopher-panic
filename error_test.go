@@ -99,7 +99,7 @@ func TestNew(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := New(testCase.args.code, testCase.args.message, testCase.args.traces) // Error check based on the current line
+			result := New(testCase.args.code, testCase.args.message, testCase.args.traces...) // Error check based on the current line
 			files := strings.Split(result.Position.File, "/")
 			result.Position.File = files[len(files)-1]
 			assert.Equal(t, testCase.want, result)
