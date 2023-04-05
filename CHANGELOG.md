@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- GNU Standard error format
+- Possibility to change between legacy and GNU Standard error format
+- Possibility to remove file data from error format
+
+### Changed
+
+- Set GNU stardard as default for error interface without file data
+
 ## [0.2.0]
 
 ### Added
