@@ -255,7 +255,7 @@ func TestErrorError(t *testing.T) {
 					Line: 50,
 				},
 			},
-			want: "code id: 0; description: failed to perform task\n\terror message: sample error; in file: sample.go; at line: 50",
+			want: "Error: 0:failed to perform task:sample error",
 		},
 	}
 
@@ -268,13 +268,18 @@ func TestErrorError(t *testing.T) {
 }
 
 func TestErrorFormat(t *testing.T) {
+	type args struct {
+		custom    bool
+		withInner bool
+	}
 	tests := []struct {
 		name   string
 		fields Error
+		args   args
 		want   string
 	}{
 		{
-			name: "OK",
+			name: "OK - Custom",
 			fields: Error{
 				Code:    UnknownError,
 				Message: "sample error",
@@ -283,13 +288,65 @@ func TestErrorFormat(t *testing.T) {
 					Line: 50,
 				},
 			},
+			args: args{
+				custom:    true,
+				withInner: true,
+			},
 			want: "code id: 0; description: failed to perform task\n\terror message: sample error; in file: sample.go; at line: 50",
+		},
+		{
+			name: "OK - Custom without inner data",
+			fields: Error{
+				Code:    UnknownError,
+				Message: "sample error",
+				Position: Position{
+					File: "sample.go",
+					Line: 50,
+				},
+			},
+			args: args{
+				custom:    true,
+				withInner: false,
+			},
+			want: "code id: 0; description: failed to perform task\n\terror message: sample error",
+		},
+		{
+			name: "OK - GNU Standard",
+			fields: Error{
+				Code:    UnknownError,
+				Message: "sample error",
+				Position: Position{
+					File: "sample.go",
+					Line: 50,
+				},
+			},
+			args: args{
+				custom:    false,
+				withInner: true,
+			},
+			want: "sample.go:50: Error: 0:failed to perform task:sample error",
+		},
+		{
+			name: "OK - GNU Standard inner data",
+			fields: Error{
+				Code:    UnknownError,
+				Message: "sample error",
+				Position: Position{
+					File: "sample.go",
+					Line: 50,
+				},
+			},
+			args: args{
+				custom:    false,
+				withInner: false,
+			},
+			want: "Error: 0:failed to perform task:sample error",
 		},
 	}
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := testCase.fields.Format()
+			result := testCase.fields.Format(testCase.args.custom, testCase.args.withInner)
 			assert.Equal(t, testCase.want, result)
 		})
 	}
@@ -299,10 +356,11 @@ func TestErrorFormatWithTraces(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields Error
+		args   bool
 		want   string
 	}{
 		{
-			name: "OK",
+			name: "OK - Custom",
 			fields: Error{
 				Code:    UnknownError,
 				Message: "sample error",
@@ -334,13 +392,50 @@ func TestErrorFormatWithTraces(t *testing.T) {
 					},
 				},
 			},
+			args: true,
 			want: "code id: 0; description: failed to perform task\n\terror message: sample error; in file: sample.go; at line: 50\n\t\ttrace message: inner 1; in file: inner_1.go; at line: 10\n\t\ttrace message: inner 2; in file: inner_2.go; at line: 20\n\t\ttrace message: inner 3; in file: inner_3.go; at line: 30",
+		},
+		{
+			name: "OK - GNU Standard",
+			fields: Error{
+				Code:    UnknownError,
+				Message: "sample error",
+				Position: Position{
+					File: "sample.go",
+					Line: 50,
+				},
+				Traces: []Trace{
+					{
+						Message: "inner 1",
+						Position: Position{
+							File: "inner_1.go",
+							Line: 10,
+						},
+					},
+					{
+						Message: "inner 2",
+						Position: Position{
+							File: "inner_2.go",
+							Line: 20,
+						},
+					},
+					{
+						Message: "inner 3",
+						Position: Position{
+							File: "inner_3.go",
+							Line: 30,
+						},
+					},
+				},
+			},
+			args: false,
+			want: "sample.go:50: Error: 0:failed to perform task:sample error\ninner_1.go:10: Error: inner 1\ninner_2.go:20: Error: inner 2\ninner_3.go:30: Error: inner 3",
 		},
 	}
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := testCase.fields.FormatWithTraces()
+			result := testCase.fields.FormatWithTraces(testCase.args)
 			assert.Equal(t, testCase.want, result)
 		})
 	}
@@ -471,10 +566,11 @@ func TestTraceFormat(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields Trace
+		args   bool
 		want   string
 	}{
 		{
-			name: "OK",
+			name: "OK - Custom",
 			fields: Trace{
 				Message: "sample error",
 				Position: Position{
@@ -482,13 +578,26 @@ func TestTraceFormat(t *testing.T) {
 					Line: 50,
 				},
 			},
+			args: true,
 			want: "trace message: sample error; in file: sample.go; at line: 50",
+		},
+		{
+			name: "OK - GNU Standard",
+			fields: Trace{
+				Message: "sample error",
+				Position: Position{
+					File: "sample.go",
+					Line: 50,
+				},
+			},
+			args: false,
+			want: "sample.go:50: Error: sample error",
 		},
 	}
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := testCase.fields.Format()
+			result := testCase.fields.Format(testCase.args)
 			assert.Equal(t, testCase.want, result)
 		})
 	}

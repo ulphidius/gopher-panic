@@ -41,23 +41,58 @@ func (err Error) IntoTrace() Trace {
 }
 
 func (err Error) Error() string {
-	return err.Format()
+	return err.Format(false, false)
 }
 
-func (err Error) Format() string {
+func (err Error) Format(custom bool, withInnerData bool) string {
+	if custom {
+		if !withInnerData {
+			return fmt.Sprintf(
+				"code id: %d; description: %s\n\terror message: %s",
+				err.Code.ID,
+				err.Code.Description,
+				err.Message,
+			)
+		}
+
+		return fmt.Sprintf(
+			"code id: %d; description: %s\n\terror message: %s; in file: %s; at line: %d",
+			err.Code.ID,
+			err.Code.Description,
+			err.Message,
+			err.Position.File,
+			err.Position.Line,
+		)
+	}
+
+	if !withInnerData {
+		return fmt.Sprintf(
+			"Error: %d:%s:%s",
+			err.Code.ID,
+			err.Code.Description,
+			err.Message,
+		)
+	}
+
 	return fmt.Sprintf(
-		"code id: %d; description: %s\n\terror message: %s; in file: %s; at line: %d",
+		"%s:%d: Error: %d:%s:%s",
+		err.Position.File,
+		err.Position.Line,
 		err.Code.ID,
 		err.Code.Description,
 		err.Message,
-		err.Position.File,
-		err.Position.Line,
 	)
 }
 
-func (err Error) FormatWithTraces() string {
-	return iterago.Fold(err.Traces, err.Format(), func(acc string, trace Trace) string {
-		return acc + fmt.Sprintf("\n\t\t%s", trace.Format())
+func (err Error) FormatWithTraces(custom bool) string {
+	if custom {
+		return iterago.Fold(err.Traces, err.Format(custom, true), func(acc string, trace Trace) string {
+			return acc + fmt.Sprintf("\n\t\t%s", trace.Format(custom))
+		})
+	}
+
+	return iterago.Fold(err.Traces, err.Format(custom, true), func(acc string, trace Trace) string {
+		return acc + fmt.Sprintf("\n%s", trace.Format(custom))
 	})
 }
 
@@ -85,6 +120,10 @@ func (trace Trace) IntoError() Error {
 	}
 }
 
-func (trace Trace) Format() string {
-	return fmt.Sprintf("trace message: %s; in file: %s; at line: %d", trace.Message, trace.Position.File, trace.Position.Line)
+func (trace Trace) Format(custom bool) string {
+	if custom {
+		return fmt.Sprintf("trace message: %s; in file: %s; at line: %d", trace.Message, trace.Position.File, trace.Position.Line)
+	}
+
+	return fmt.Sprintf("%s:%d: Error: %s", trace.Position.File, trace.Position.Line, trace.Message)
 }
