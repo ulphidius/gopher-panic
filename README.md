@@ -6,3 +6,18 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/ulphidius/gopherpanic.svg)](https://pkg.go.dev/github.com/ulphidius/gopherpanic)
 
 gopher-panic has for aims to enhance the go error system
+
+## Example
+
+```go
+func main() {
+
+}
+
+func div(x, y int64) (int64, error) {
+    if y == 0 {
+        return 0, gopherpanic.New(gopherpanic)
+    }
+    return x / y
+}
+```

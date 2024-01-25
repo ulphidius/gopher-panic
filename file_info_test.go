@@ -1,6 +1,8 @@
 package gopherpanic
 
 import (
+	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -18,7 +20,7 @@ func TestPositionSpawn(t *testing.T) {
 			fields: Position{},
 			want: Position{
 				File: "file_info_test.go",
-				Line: 28,
+				Line: 30,
 			},
 		},
 	}
@@ -46,7 +48,7 @@ func TestPositionPrivateSpawn(t *testing.T) {
 			args:   0,
 			want: Position{
 				File: "file_info.go",
-				Line: 19,
+				Line: 22,
 			},
 		},
 		{
@@ -55,7 +57,7 @@ func TestPositionPrivateSpawn(t *testing.T) {
 			args:   1,
 			want: Position{
 				File: "file_info_test.go",
-				Line: 65,
+				Line: 67,
 			},
 		},
 	}
@@ -68,4 +70,14 @@ func TestPositionPrivateSpawn(t *testing.T) {
 			assert.Equal(t, testCase.want, result)
 		})
 	}
+}
+
+func ExampleSpawn() {
+	pos := Position{}.Spawn()
+
+	filename_without_path := strings.Split(pos.File, "/")
+	pos.File = filename_without_path[len(filename_without_path)-1]
+	d, _ := json.Marshal(pos)
+	fmt.Println(string(d))
+	// Output: {"file":"file_info_test.go","line":76}
 }

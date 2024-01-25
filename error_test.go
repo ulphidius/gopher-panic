@@ -1,6 +1,8 @@
 package gopherpanic
 
 import (
+	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -53,7 +55,7 @@ func TestNew(t *testing.T) {
 				Message: "sample error",
 				Position: Position{
 					File: "error_test.go",
-					Line: 102,
+					Line: 104,
 				},
 				Traces: []Trace{
 					{
@@ -91,7 +93,7 @@ func TestNew(t *testing.T) {
 				Message: "sample error",
 				Position: Position{
 					File: "error_test.go",
-					Line: 102,
+					Line: 104,
 				},
 			},
 		},
@@ -160,7 +162,7 @@ func TestWrap(t *testing.T) {
 				Message: "sample error",
 				Position: Position{
 					File: "error_test.go",
-					Line: 201,
+					Line: 203,
 				},
 				Traces: []Trace{
 					{
@@ -601,4 +603,184 @@ func TestTraceFormat(t *testing.T) {
 			assert.Equal(t, testCase.want, result)
 		})
 	}
+}
+
+func ExampleNew() {
+	err := New(InternalError, "message fail to compute the statistics")
+	filename_without_path := strings.Split(err.Position.File, "/")
+	err.Position.File = filename_without_path[len(filename_without_path)-1]
+	d, _ := json.Marshal(err)
+	fmt.Println(string(d))
+	// Output: {"code":{"id":3,"description":"failed to perform application task"},"message":"message fail to compute the statistics","position":{"file":"error_test.go","line":609}}
+}
+
+func ExampleWrap() {
+	err := New(InternalError, "message fail to compute the statistics")
+	filename_without_path := strings.Split(err.Position.File, "/")
+	err.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr := Wrap(InternalError, "fail to fetch statistics data", err)
+	filename_without_path = strings.Split(newErr.Position.File, "/")
+	newErr.Position.File = filename_without_path[len(filename_without_path)-1]
+	d, _ := json.Marshal(newErr)
+	fmt.Println(string(d))
+	// Output: {"code":{"id":3,"description":"failed to perform application task"},"message":"fail to fetch statistics data","position":{"file":"error_test.go","line":622},"traces":[{"message":"message fail to compute the statistics","position":{"file":"error_test.go","line":618}}]}
+}
+
+func ExampleError_IntoTrace() {
+	trace := New(InternalError, "message fail to compute the statistics").IntoTrace()
+	filename_without_path := strings.Split(trace.Position.File, "/")
+	trace.Position.File = filename_without_path[len(filename_without_path)-1]
+	d, _ := json.Marshal(trace)
+	fmt.Println(string(d))
+	// Output: {"message":"message fail to compute the statistics","position":{"file":"error_test.go","line":631}}
+
+}
+
+func ExampleError_Error() {
+	err := New(InternalError, "message fail to compute the statistics")
+	filename_without_path := strings.Split(err.Position.File, "/")
+	err.Position.File = filename_without_path[len(filename_without_path)-1]
+	fmt.Println(err.Error())
+	// Output: Error: 3:failed to perform application task:message fail to compute the statistics
+}
+
+func ExampleError_Format() {
+	err := New(InternalError, "message fail to compute the statistics")
+	filename_without_path := strings.Split(err.Position.File, "/")
+	err.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr := Wrap(InternalError, "fail to fetch statistics data", err)
+	filename_without_path = strings.Split(newErr.Position.File, "/")
+	newErr.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	fmt.Println(newErr.Format(true, true))
+	// Output:
+	// code id: 3; description: failed to perform application task
+	// 	error message: fail to fetch statistics data; in file: error_test.go; at line: 653
+}
+
+func ExampleError_Format_withoutInnerData() {
+	err := New(InternalError, "message fail to compute the statistics")
+	filename_without_path := strings.Split(err.Position.File, "/")
+	err.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr := Wrap(InternalError, "fail to fetch statistics data", err)
+	filename_without_path = strings.Split(newErr.Position.File, "/")
+	newErr.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	fmt.Println(newErr.Format(true, false))
+	// Output:
+	// code id: 3; description: failed to perform application task
+	//	error message: fail to fetch statistics data
+}
+
+func ExampleError_Format_GNUWithInnerData() {
+	err := New(InternalError, "message fail to compute the statistics")
+	filename_without_path := strings.Split(err.Position.File, "/")
+	err.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr := Wrap(InternalError, "fail to fetch statistics data", err)
+	filename_without_path = strings.Split(newErr.Position.File, "/")
+	newErr.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	fmt.Println(newErr.Format(false, true))
+	// Output: error_test.go:683: Error: 3:failed to perform application task:fail to fetch statistics data
+}
+
+func ExampleError_Format_GNUWithoutInnerData() {
+	err := New(InternalError, "message fail to compute the statistics")
+	filename_without_path := strings.Split(err.Position.File, "/")
+	err.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr := Wrap(InternalError, "fail to fetch statistics data", err)
+	filename_without_path = strings.Split(newErr.Position.File, "/")
+	newErr.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	fmt.Println(newErr.Format(false, false))
+	// Output: Error: 3:failed to perform application task:fail to fetch statistics data
+}
+
+func ExampleError_FormatWithTraces() {
+	err := New(InternalError, "message fail to compute the statistics")
+	filename_without_path := strings.Split(err.Position.File, "/")
+	err.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr := Wrap(InternalError, "fail to fetch statistics data", err)
+	filename_without_path = strings.Split(newErr.Position.File, "/")
+	newErr.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr2 := Wrap(InternalError, "fail to fetch statistics data", newErr)
+	filename_without_path = strings.Split(newErr2.Position.File, "/")
+	newErr2.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr3 := Wrap(InternalError, "fail to fetch statistics data", newErr2)
+	filename_without_path = strings.Split(newErr3.Position.File, "/")
+	newErr3.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	fmt.Println(newErr3.FormatWithTraces(true))
+	// Output:
+	// code id: 3; description: failed to perform application task
+	// 	error message: fail to fetch statistics data; in file: error_test.go; at line: 717
+	// 		trace message: fail to fetch statistics data; in file: error_test.go; at line: 713
+	// 		trace message: fail to fetch statistics data; in file: error_test.go; at line: 709
+	// 		trace message: message fail to compute the statistics; in file: error_test.go; at line: 705
+}
+
+func ExampleError_FormatWithTraces_GNU() {
+	err := New(InternalError, "message fail to compute the statistics")
+	filename_without_path := strings.Split(err.Position.File, "/")
+	err.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr := Wrap(InternalError, "fail to fetch statistics data", err)
+	filename_without_path = strings.Split(newErr.Position.File, "/")
+	newErr.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr2 := Wrap(InternalError, "fail to fetch statistics data", newErr)
+	filename_without_path = strings.Split(newErr2.Position.File, "/")
+	newErr2.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr3 := Wrap(InternalError, "fail to fetch statistics data", newErr2)
+	filename_without_path = strings.Split(newErr3.Position.File, "/")
+	newErr3.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	fmt.Println(newErr3.FormatWithTraces(false))
+	// Output:
+	// error_test.go:743: Error: 3:failed to perform application task:fail to fetch statistics data
+	// error_test.go:739: Error: fail to fetch statistics data
+	// error_test.go:735: Error: fail to fetch statistics data
+	// error_test.go:731: Error: message fail to compute the statistics
+}
+
+func ExampleError_FormatJSON() {
+	err := New(InternalError, "message fail to compute the statistics")
+	filename_without_path := strings.Split(err.Position.File, "/")
+	err.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr := Wrap(InternalError, "fail to fetch statistics data", err)
+	filename_without_path = strings.Split(newErr.Position.File, "/")
+	newErr.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr2 := Wrap(InternalError, "fail to fetch statistics data", newErr)
+	filename_without_path = strings.Split(newErr2.Position.File, "/")
+	newErr2.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	newErr3 := Wrap(InternalError, "fail to fetch statistics data", newErr2)
+	filename_without_path = strings.Split(newErr3.Position.File, "/")
+	newErr3.Position.File = filename_without_path[len(filename_without_path)-1]
+
+	fmt.Println(newErr3.FormatJSON(false))
+	// Output: {"code":{"id":3,"description":"failed to perform application task"},"message":"fail to fetch statistics data","position":{"file":"error_test.go","line":768},"traces":[{"message":"fail to fetch statistics data","position":{"file":"error_test.go","line":764}},{"message":"fail to fetch statistics data","position":{"file":"error_test.go","line":760}},{"message":"message fail to compute the statistics","position":{"file":"error_test.go","line":756}}]}
+}
+
+func ExampleTrace_Format() {
+	trace := Trace{Message: "error database", Position: Position{File: "error_test.go", Line: 828}}
+	fmt.Println(trace.Format(true))
+	// Output: trace message: error database; in file: error_test.go; at line: 828
+}
+
+func ExampleTrace_Format_GNU() {
+	trace := Trace{Message: "error database", Position: Position{File: "error_test.go", Line: 828}}
+	fmt.Println(trace.Format(false))
+	// Output: error_test.go:828: Error: error database
 }

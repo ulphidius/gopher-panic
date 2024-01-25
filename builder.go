@@ -16,10 +16,18 @@ type ErrorBuilder struct {
 	traces   []Trace
 }
 
+// Create a new empty Error
 func (builder ErrorBuilder) New() ErrorBuilder {
 	return ErrorBuilder{}
 }
 
+// Initialize the default values
+//
+// - Code: UnknownError
+//
+// - Message: "an enexpected error occured"
+//
+// - Position: *the current possition of Default call in your code*
 func (builder ErrorBuilder) Default() ErrorBuilder {
 	return ErrorBuilder{code: UnknownError, message: "an unexpected error occured", position: Position{}.spawn(2), traces: nil}
 }

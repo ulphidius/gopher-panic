@@ -7,13 +7,15 @@ import (
 	"github.com/ulphidius/iterago"
 )
 
+// Representation of an error
 type Error struct {
-	Code     Code     `json:"code"`
-	Message  string   `json:"message"`
-	Position Position `json:"position"`
-	Traces   []Trace  `json:"traces,omitempty"`
+	Code     Code     `json:"code"`             // Kind of error (Internal, client, etc.)
+	Message  string   `json:"message"`          // Message which describe the user error
+	Position Position `json:"position"`         // Where the Error is spawns in the user code (Auto generation if New or Wrap is used)
+	Traces   []Trace  `json:"traces,omitempty"` // Wrapped parent errors
 }
 
+// Create a new error with the user parameters and current spawn position
 func New(code Code, message string, traces ...Trace) *Error {
 	return &Error{
 		Code:     code,
@@ -23,6 +25,9 @@ func New(code Code, message string, traces ...Trace) *Error {
 	}
 }
 
+// Create a new error that wraps an existing error.
+//
+// The build behavior is equivalent to New function.
 func Wrap(code Code, message string, err *Error) *Error {
 	newErr := ErrorBuilder{}.New().
 		WithCode(code).
@@ -44,6 +49,14 @@ func (err Error) Error() string {
 	return err.Format(false, false)
 }
 
+// Convert into string the Error structure without Traces.
+// Can remove the position data.
+//
+// Allowed formats:
+//
+// - gopherpanic format
+//
+// - GNU format
 func (err Error) Format(custom bool, withInnerData bool) string {
 	if custom {
 		if !withInnerData {
@@ -84,6 +97,13 @@ func (err Error) Format(custom bool, withInnerData bool) string {
 	)
 }
 
+// Convert into string the Error structure with Traces.
+//
+// Allowed formats:
+//
+// - gopherpanic format
+//
+// - GNU format
 func (err Error) FormatWithTraces(custom bool) string {
 	if custom {
 		return iterago.Fold(err.Traces, err.Format(custom, true), func(acc string, trace Trace) string {
@@ -96,6 +116,7 @@ func (err Error) FormatWithTraces(custom bool) string {
 	})
 }
 
+// Convert into JSON string (with or without indentation)
 func (err Error) FormatJSON(indent bool) string {
 	var data []byte
 
@@ -108,9 +129,10 @@ func (err Error) FormatJSON(indent bool) string {
 	return string(data)
 }
 
+// Representation of a parent error
 type Trace struct {
-	Message  string   `json:"message"`
-	Position Position `json:"position"`
+	Message  string   `json:"message"`  // Message which describe the user error. Retrived from the Error structucture
+	Position Position `json:"position"` // Where the Error is spawns in the user code (Auto generation if New or Wrap is used). Retrived from the Error structure
 }
 
 func (trace Trace) IntoError() Error {
@@ -120,6 +142,13 @@ func (trace Trace) IntoError() Error {
 	}
 }
 
+// Convert into string
+//
+// Allowed formats:
+//
+// - gopherpanic format
+//
+// - GNU format
 func (trace Trace) Format(custom bool) string {
 	if custom {
 		return fmt.Sprintf("trace message: %s; in file: %s; at line: %d", trace.Message, trace.Position.File, trace.Position.Line)

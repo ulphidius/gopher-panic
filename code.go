@@ -1,5 +1,8 @@
 package gopherpanic
 
+// Error type
+//
+// The use can create new Error Code by extending the existing Code
 type ErrorKind uint
 
 const (
@@ -8,7 +11,9 @@ const (
 	Network
 	Internal
 	Client
-	Authorization
+	Unauthorized
+	Timeout
+	Unimplemented
 )
 
 var (
@@ -32,12 +37,21 @@ var (
 		ID:          Client,
 		Description: "failed to perform client api task",
 	}
-	AuthorizationError Code = Code{
-		ID:          Authorization,
-		Description: "cannot perform unauthorize task",
+	UnauthorizedError Code = Code{
+		ID:          Unauthorized,
+		Description: "cannot perform unauthorized task",
+	}
+	TimeoutError Code = Code{
+		ID:          Timeout,
+		Description: "failed to perform the task, the deadline is exceeded",
+	}
+	UnimplementedError Code = Code{
+		ID:          Unimplemented,
+		Description: "unimplemented behavior",
 	}
 )
 
+// Type of error
 type Code struct {
 	ID          ErrorKind `json:"id"`
 	Description string    `json:"description,omitempty"`
