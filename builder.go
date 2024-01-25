@@ -25,11 +25,11 @@ func (builder ErrorBuilder) New() ErrorBuilder {
 //
 // - Code: UnknownError
 //
-// - Message: "an enexpected error occured"
+// - Message: "an enexpected error occurred"
 //
 // - Position: *the current possition of Default call in your code*
 func (builder ErrorBuilder) Default() ErrorBuilder {
-	return ErrorBuilder{code: UnknownError, message: "an unexpected error occured", position: Position{}.spawn(2), traces: nil}
+	return ErrorBuilder{code: UnknownError, message: "an unexpected error occurred", position: Position{}.spawn(2), traces: nil}
 }
 
 func (builder ErrorBuilder) WithCode(code Code) ErrorBuilder {

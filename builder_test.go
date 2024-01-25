@@ -39,7 +39,7 @@ func TestErrorBuilderDefault(t *testing.T) {
 			fields: ErrorBuilder{},
 			want: ErrorBuilder{
 				code:     UnknownError,
-				message:  "an unexpected error occured",
+				message:  "an unexpected error occurred",
 				position: Position{File: "builder_test.go", Line: 50},
 			},
 		},

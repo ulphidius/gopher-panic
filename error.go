@@ -3,9 +3,31 @@ package gopherpanic
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/ulphidius/iterago"
 )
+
+type Format uint
+
+const (
+	GNU Format = iota
+	GNUWithTraces
+	Custom
+	CustomWithTraces
+)
+
+var GopherpanicFormat Format = GNU
+
+func init() {
+	format, err := strconv.Atoi(os.Getenv("GOPHERPANIC_FORMAT"))
+	if err != nil || format > 3 || format < 0 {
+		return
+	}
+
+	GopherpanicFormat = Format(format)
+}
 
 // Representation of an error
 type Error struct {
@@ -45,8 +67,28 @@ func (err Error) IntoTrace() Trace {
 	}
 }
 
+// The output changes depending of the GOPHERPANIC_FORMAT value
+//
+// - GNU(0): sample.go:50: Error: 0:failed to perform task:sample error
+//
+// - GNUWithTraces(1): sample.go:50: Error: 0:failed to perform task:sample error
+//
+// - Custom(2): code id: 0; description: failed to perform task\n\terror message: sample error
+//
+// - CustomWithTraces(3): code id: 0; description: failed to perform task\n\terror message: sample error
 func (err Error) Error() string {
-	return err.Format(false, false)
+	switch GopherpanicFormat {
+	case Custom:
+		return err.Format(true, true)
+	case CustomWithTraces:
+		return err.FormatWithTraces(true)
+	case GNU:
+		return err.Format(false, true)
+	case GNUWithTraces:
+		return err.FormatWithTraces(false)
+	default:
+		return err.Format(false, true)
+	}
 }
 
 // Convert into string the Error structure without Traces.
