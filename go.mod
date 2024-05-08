@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/stretchr/testify v1.8.2
-	github.com/ulphidius/iterago v0.7.0
+	github.com/ulphidius/iterago v0.9.1
 )
 
 require (
